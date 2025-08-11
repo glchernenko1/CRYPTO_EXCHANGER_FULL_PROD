@@ -1,0 +1,19 @@
+# Git субмодули для CRYPTO_EXCHANGER_FULL_PROD
+
+# Frontend приложение
+[submodule "frontend"]
+	path = frontend
+	url = git@github.com:glchernenko1/frontend_crypto.git
+	branch = main
+
+# Core модуль (основная логика)
+[submodule "core"]
+	path = core
+	url = git@github.com:glchernenko1/crypto_exchanger.git
+	branch = main
+
+# Микросервисы
+[submodule "microservices"]
+	path = microservices
+	url = git@github.com:glchernenko1/GoogleSheetW.git
+	branch = main
