@@ -1,0 +1,189 @@
+version: '3.8'
+
+services:
+  # Traefik reverse proxy
+  traefik:
+    image: traefik:v3.0
+    container_name: crypto-traefik-prod
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8090:8080"  # Traefik dashboard (изменен порт с 8080 на 8090)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - crypto-network
+
+  # База данных PostgreSQL
+  postgres:
+    image: postgres:17-alpine
+    container_name: crypto-postgres-prod
+    restart: always
+    ports:
+      - ${PORT_DB}:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-postgres}
+    networks:
+      - crypto-network
+
+  # Redis для кеширования
+  redis:
+    image: redis:7.2-alpine
+    container_name: crypto-redis-prod
+    restart: always
+    ports:
+      - ${REDIS_PORT}:6379
+    networks:
+      - crypto-network
+
+  # Микросервис Google Sheets (запускается первым)
+  microservices:
+    build:
+      context: ./microservices
+      dockerfile: Dockerfile
+    container_name: crypto-microservices-prod
+    ports:
+      - ${MICROSERVICES_PORT}:${MICROSERVICES_PORT}
+    environment:
+      - PORT=${MICROSERVICES_PORT}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - GOOGLE_JSON_PATH=/app/google.json
+    volumes:
+      - ./logs/microservices/:/app/log
+      - ./google.json:/app/google.json
+    restart: unless-stopped
+    networks:
+      - crypto-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${MICROSERVICES_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Инициализация базы данных (миграции)
+  core-init:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+    container_name: crypto-core-init-prod
+    environment:
+      - DATABASE_URL=postgres
+      - PORT_DB=${PORT_DB:-5432}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-postgres}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SERVER_PORT=${SERVER_PORT:-8000}
+    depends_on:
+      postgres:
+        condition: service_started
+      microservices:
+        condition: service_healthy
+    volumes:
+      - init_flag:/tmp/init
+      - ./logs/core-init:/code2/src/log
+    networks:
+      - crypto-network
+    command: >
+      sh -c "
+      if [ ! -f /tmp/init/completed ]; then
+        echo 'Запуск миграций и обновления банков...';
+        cd .. && alembic upgrade head && 
+        cd src && python3 update_banks.py &&
+        mkdir -p /tmp/init && touch /tmp/init/completed &&
+        echo 'Инициализация завершена';
+      else
+        echo 'Инициализация уже была выполнена, пропускаем';
+      fi
+      "
+
+  # Core backend (запускается после микросервисов и инициализации)
+  core:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+    container_name: crypto-core-prod
+    volumes:
+      - ./logs/core:/code2/src/log
+    environment:
+      - DATABASE_URL=postgres
+      - PORT_DB=${PORT_DB:-5432}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-postgres}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SERVER_HOST=${SERVER_HOST:-0.0.0.0}
+      - SERVER_PORT=${SERVER_PORT:-8000}
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - GOOGLE_SHEET_IP=microservices
+      - GOOGLE_SHEET_PORT=${MICROSERVICES_PORT}
+    depends_on:
+      core-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_started
+      microservices:
+        condition: service_healthy
+    command: python3 start_backend.py
+    restart: always
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    networks:
+      - crypto-network
+    healthcheck:
+      test:  ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${SERVER_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.middlewares=api-stripprefix"
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.services.backend.loadbalancer.server.port=${SERVER_PORT}"
+
+  # Frontend (запускается последним)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=http://localhost
+    container_name: crypto-frontend-prod
+    environment:
+      - REACT_APP_API_URL=http://localhost
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+#    depends_on:
+#      core:
+#        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - crypto-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.priority=1"
+      - "traefik.http.services.frontend.loadbalancer.server.port=${FRONTEND_PORT}"
+
+volumes:
+  postgres_data:
+  init_flag:
+
+networks:
+  crypto-network:
+    driver: bridge
