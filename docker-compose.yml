@@ -121,7 +121,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${DB_NAME:-postgres}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - SERVER_HOST=${SERVER_HOST:-0.0.0.0}
+      - SERVER_HOST=0.0.0.0
       - SERVER_PORT=${SERVER_PORT:-8000}
       - REDIS_HOST=redis
       - REDIS_PORT=${REDIS_PORT:-6379}
