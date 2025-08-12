@@ -175,6 +175,7 @@ volumes:
   postgres_data:
   init_flag:
 
+
 networks:
   crypto-network:
     driver: bridge
