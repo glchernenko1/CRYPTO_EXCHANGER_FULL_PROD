@@ -130,6 +130,7 @@ services:
       - REDIS_PORT=${REDIS_PORT:-6379}
       - GOOGLE_SHEET_IP=microservices
       - GOOGLE_SHEET_PORT=${MICROSERVICES_PORT}
+      - IS_PRODUCTION=True
     depends_on:
       core-init:
         condition: service_completed_successfully
