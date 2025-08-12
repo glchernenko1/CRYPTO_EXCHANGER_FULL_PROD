@@ -9,7 +9,7 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
+      - "--entrypoints.http.address=:80"
     ports:
       - "80:80"
       - "8090:8080"  # Traefik dashboard (изменен порт с 8080 на 8090)
