@@ -144,7 +144,7 @@ services:
       - crypto-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`141.147.30.75`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.rule=Host(`141.147.30.75`) && PathPrefix(`/api`) || Path(`/openapi.json`))"
       - "traefik.http.routers.backend.entrypoints=http"
       # Создаем middleware для удаления префикса /api
       - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
