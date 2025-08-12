@@ -154,11 +154,13 @@ services:
 
   # Frontend (оптимизированный production build)
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - REACT_APP_API_URL=${REACT_APP_API_URL}
+    image: 'ogrttt/front_cr_d_s:latest'
+
+#    build:
+#      context: ./frontend
+#      dockerfile: Dockerfile
+#      args:
+#        - REACT_APP_API_URL=${REACT_APP_API_URL}
     container_name: crypto-frontend-prod
     environment:
       - REACT_APP_API_URL=${REACT_APP_API_URL}
