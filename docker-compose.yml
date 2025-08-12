@@ -150,9 +150,8 @@ services:
       start_period: 60s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.middlewares=api-stripprefix"
-      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.backend.rule=Host(`141.147.30.75`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=http"
       - "traefik.http.services.backend.loadbalancer.server.port=${SERVER_PORT}"
 
   # Frontend (запускается последним)
@@ -161,24 +160,19 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - REACT_APP_API_URL=http://localhost
+        - REACT_APP_API_URL=${REACT_APP_API_URL}
     container_name: crypto-frontend-prod
     environment:
-      - REACT_APP_API_URL=http://localhost
+      - REACT_APP_API_URL=${REACT_APP_API_URL}/api
     volumes:
       - ./frontend:/app
       - /app/node_modules
-#    depends_on:
-#      core:
-#        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - crypto-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.frontend.priority=1"
-      - "traefik.http.services.frontend.loadbalancer.server.port=${FRONTEND_PORT}"
+      - "traefik.http.routers.frontend.rule=Host(${REACT_APP_API_URL})"
+      - "traefik.http.routers.frontend.entrypoints=http"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+    restart: unless-stopped
 
 volumes:
   postgres_data:

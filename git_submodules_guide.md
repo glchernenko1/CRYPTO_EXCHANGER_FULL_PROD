@@ -12,6 +12,9 @@
 # git submodule init
 # git submodule update
 
+
+
+
 # Или одной командой:
 # git submodule update --init --recursive
 
