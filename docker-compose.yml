@@ -152,25 +152,24 @@ services:
       - "traefik.http.routers.backend.middlewares=api-stripprefix"
       - "traefik.http.services.backend.loadbalancer.server.port=${SERVER_PORT}"
 
-  # Frontend (запускается последним)
-#  frontend:
-#    build:
-#      context: ./frontend
-#      dockerfile: Dockerfile
-#      args:
-#        - REACT_APP_API_URL=${REACT_APP_API_URL}/api
-#    container_name: crypto-frontend-prod
-#    environment:
-#      - REACT_APP_API_URL=${REACT_APP_API_URL}/api
-#    volumes:
-#      - ./frontend:/app
-#      - /app/node_modules
-#    labels:
-#      - "traefik.enable=true"
-#      - "traefik.http.routers.frontend.rule=Host(`141.147.30.75`)"
-#      - "traefik.http.routers.frontend.entrypoints=http"
-#      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-#    restart: unless-stopped
+  # Frontend (оптимизированный production build)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=${REACT_APP_API_URL}
+    container_name: crypto-frontend-prod
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`141.147.30.75`)"
+      - "traefik.http.routers.frontend.entrypoints=http"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    restart: unless-stopped
+    depends_on:
+      - core
 
 volumes:
   postgres_data:
