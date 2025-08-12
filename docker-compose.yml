@@ -146,6 +146,10 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`141.147.30.75`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=http"
+      # Создаем middleware для удаления префикса /api
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
+      # Применяем middleware к роутеру
+      - "traefik.http.routers.backend.middlewares=api-stripprefix"
       - "traefik.http.services.backend.loadbalancer.server.port=${SERVER_PORT}"
 
   # Frontend (запускается последним)
