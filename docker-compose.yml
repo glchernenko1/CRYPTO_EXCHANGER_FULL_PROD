@@ -57,11 +57,11 @@ services:
       - LOG_LEVEL=${LOG_LEVEL}
       - GOOGLE_JSON_PATH=/app/google.json
       - EMAILS_LIST=${EMAILS_LIST:-}
-      - EMAILS_PATH="./email.json"
+      - EMAILS_PATH="./emails.json"
     volumes:
       - ./logs/microservices/:/app/log
       - ./google.json:/app/google.json
-#      - ./email.json:/email.json
+#      - ./emails.json:/emails.json
     restart: unless-stopped
     networks:
       - crypto-network
