@@ -73,41 +73,41 @@ services:
       start_period: 40s
 
   # Инициализация базы данных (миграции)
-  core-init:
-    build:
-      context: ./core
-      dockerfile: Dockerfile
-    container_name: crypto-core-init-prod
-    environment:
-      - DATABASE_URL=postgres
-      - PORT_DB=${PORT_DB:-5432}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${DB_NAME:-postgres}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - SERVER_PORT=${SERVER_PORT:-8000}
-    depends_on:
-      postgres:
-        condition: service_started
-      microservices:
-        condition: service_healthy
-    volumes:
-      - init_flag:/tmp/init
-      - ./logs/core-init:/code2/src/log
-    networks:
-      - crypto-network
-    command: >
-      sh -c "
-      if [ ! -f /tmp/init/completed ]; then
-        echo 'Запуск миграций и обновления банков...';
-        cd .. && alembic upgrade head && 
-        cd src && python3 update_banks.py &&
-        mkdir -p /tmp/init && touch /tmp/init/completed &&
-        echo 'Инициализация завершена';
-      else
-        echo 'Инициализация уже была выполнена, пропускаем';
-      fi
-      "
+#  core-init:
+#    build:
+#      context: ./core
+#      dockerfile: Dockerfile
+#    container_name: crypto-core-init-prod
+#    environment:
+#      - DATABASE_URL=postgres
+#      - PORT_DB=${PORT_DB:-5432}
+#      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+#      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+#      - POSTGRES_DB=${DB_NAME:-postgres}
+#      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+#      - SERVER_PORT=${SERVER_PORT:-8000}
+#    depends_on:
+#      postgres:
+#        condition: service_started
+#      microservices:
+#        condition: service_healthy
+#    volumes:
+#      - init_flag:/tmp/init
+#      - ./logs/core-init:/code2/src/log
+#    networks:
+#      - crypto-network
+#    command: >
+#      sh -c "
+#      if [ ! -f /tmp/init/completed ]; then
+#        echo 'Запуск миграций и обновления банков...';
+#        cd .. && alembic upgrade head &&
+#        cd src && python3 update_banks.py &&
+#        mkdir -p /tmp/init && touch /tmp/init/completed &&
+#        echo 'Инициализация завершена';
+#      else
+#        echo 'Инициализация уже была выполнена, пропускаем';
+#      fi
+#      "
 
   # Core backend (запускается после микросервисов и инициализации)
   core:
@@ -132,8 +132,8 @@ services:
       - GOOGLE_SHEET_PORT=${MICROSERVICES_PORT}
       - IS_PRODUCTION=True
     depends_on:
-      core-init:
-        condition: service_completed_successfully
+#      core-init:
+#        condition: service_completed_successfully
       redis:
         condition: service_started
       postgres:
