@@ -131,6 +131,7 @@ services:
       - GOOGLE_SHEET_IP=microservices
       - GOOGLE_SHEET_PORT=${MICROSERVICES_PORT}
       - IS_PRODUCTION=True
+      - PARSER_SETTINGS_TIME_CHECK=120
     depends_on:
 #      core-init:
 #        condition: service_completed_successfully
