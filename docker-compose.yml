@@ -151,6 +151,10 @@ services:
       - ${SERVER_PORT}:${SERVER_PORT}
     networks:
       - crypto-network
+
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`141.147.30.75`) && (PathPrefix(`/api`) || Path(`/openapi.json`))"
