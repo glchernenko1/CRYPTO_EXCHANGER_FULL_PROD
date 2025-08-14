@@ -114,6 +114,11 @@ services:
     build:
       context: ./core
       dockerfile: Dockerfile
+    deploy:
+      resources:
+        limits:
+          memory: 300m
+    restart: always
     container_name: crypto-core-prod
     volumes:
       - ./logs/core:/code2/src/log
@@ -142,7 +147,6 @@ services:
       microservices:
         condition: service_healthy
     command: python3 start_backend.py
-    restart: always
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
     networks:
