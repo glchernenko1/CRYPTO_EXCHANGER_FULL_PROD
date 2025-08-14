@@ -118,6 +118,7 @@ services:
       resources:
         limits:
           memory: 300m
+          cpus: 1.5
     restart: always
     container_name: crypto-core-prod
     volumes:
