@@ -1,28 +1,27 @@
 # Makefile для управления CRYPTO_EXCHANGER_FULL_PROD
 
-.PHONY: help build up down restart logs clean status health
+.PHONY: help build up down restart logs clean status update
 
 # Показать справку
 help:
 	@echo "Доступные команды:"
 	@echo "  build    - Собрать все Docker образы"
-	@echo "  up       - Запустить всю систему"
+	@echo "  up       - Запустить всю систему в фоновом режиме"
 	@echo "  down     - Остановить всю систему"
 	@echo "  restart  - Перезапустить всю систему"
 	@echo "  logs     - Показать логи всех сервисов"
 	@echo "  status   - Показать статус всех контейнеров"
-	@echo "  health   - Проверить здоровье сервисов"
 	@echo "  clean    - Очистить неиспользуемые ресурсы Docker"
+	@echo "  update   - Обновить проект и пересобрать образы"
 
 # Собрать все образы
 build:
 	@echo "Сборка Docker образов..."
-	docker compose build  #--no-cache
+	docker compose build
 
 # Запустить всю систему
 up:
-	@echo "Запуск системы криптовалютного обменника..."
-	@echo "Последовательность: microservices → core → frontend"
+	@echo "Запуск системы..."
 	docker compose up -d
 
 # Остановить всю систему
@@ -30,53 +29,33 @@ down:
 	@echo "Остановка системы..."
 	docker compose down
 
-# Перезапустить систему
+# Перезапустить всю систему
 restart: down up
 
 # Показать логи
 logs:
+	@echo "Просмотр логов..."
 	docker compose logs -f
 
-# Показать логи конкретного сервиса
-logs-microservices:
-	docker compose logs -f microservices
-
-logs-core:
-	docker compose logs -f core
-
-logs-frontend:
-	docker compose logs -f frontend
-
-# Статус контейнеров
+# Показать статус
 status:
 	@echo "Статус контейнеров:"
 	docker compose ps
 
-# Проверка здоровья сервисов
-health:
-	@echo "Проверка здоровья сервисов..."
-	@echo "Microservices (port 8888):"
-	@curl -s http://localhost:8888/health || echo "Микросервисы недоступны"
-	@echo "\nCore API (port 8000):"
-	@curl -s http://localhost:8000/health || echo "Core API недоступен"
-	@echo "\nFrontend (port 3000):"
-	@curl -s http://localhost:3000 > /dev/null && echo "Frontend доступен" || echo "Frontend недоступен"
-
-# Очистка неиспользуемых ресурсов
+# Очистить систему
 clean:
-	@echo "Очистка неиспользуемых Docker ресурсов..."
-	docker system prune -f
-	docker volume prune -f
+	@echo "Очистка Docker..."
+	docker system prune -a -f
 
-# Обновление субмодулей
-update-submodules:
-	@echo "Обновление субмодулей до последних версий..."
+# Обновить проект
+update:
+	@echo "Остановка контейнеров..."
+	docker compose down
+	@echo "Получение последних изменений из Git..."
+	git pull
+	@echo "Обновление сабмодулей..."
 	git submodule update --remote --merge
-
-# Полная пересборка с обновлением субмодулей
-rebuild: update submodules down clean build up
-
-# Режим разработки (с выводом логов)
-dev:
-	@echo "Запуск в режиме разработки..."
-	docker compose up --build
+	@echo "Загрузка последней версии фронтенда..."
+	docker pull ogrttt/front_cr_d_s:latest
+	@echo "Сборка Docker образов..."
+	docker compose build
