@@ -25,6 +25,13 @@ services:
         max-size: "10m"
         max-file: "3"
 
+    deploy:
+      resources:
+        limits:
+          memory: 150m
+          cpus: 0.5
+
+
   # База данных PostgreSQL
   postgres:
     image: postgres:17-alpine
@@ -50,6 +57,12 @@ services:
       - ${REDIS_PORT}:6379
     networks:
       - crypto-network
+    deploy:
+      resources:
+        limits:
+          memory: 150m
+          cpus: 0.5
+
 
   # Микросервис Google Sheets (запускается первым)
   microservices:
@@ -78,6 +91,13 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+    deploy:
+      resources:
+        limits:
+          memory: 150m
+          cpus: 0.5
+
 
   # Инициализация базы данных (миграции)
 #  core-init:
@@ -195,6 +215,12 @@ services:
       - core
     networks:
       - crypto-network
+
+    deploy:
+      resources:
+        limits:
+          memory: 150m
+          cpus: 0.5
 
 volumes:
   postgres_data:
