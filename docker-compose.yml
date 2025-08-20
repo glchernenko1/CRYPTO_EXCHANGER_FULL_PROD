@@ -80,7 +80,9 @@ services:
       - EMAILS_PATH="./emails.json"
     volumes:
       - ./logs/microservices/:/app/log
-      - ./google.json:/app/google.json
+      - type: bind
+        source: ./google.json
+        target: /app/google.json
 #      - ./emails.json:/emails.json
     restart: unless-stopped
     networks:
