@@ -187,7 +187,7 @@ services:
       - 1.0.0.1
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`158.180.50.151`) && (PathPrefix(`/api`) || Path(`/openapi.json`))"
+      - "traefik.http.routers.backend.rule=Host(`parser.livex.my`) && (PathPrefix(`/api`) || Path(`/openapi.json`))"
       - "traefik.http.routers.backend.entrypoints=http"
       # Создаем middleware для удаления префикса /api
       # - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
@@ -209,7 +209,7 @@ services:
       - REACT_APP_API_URL=${REACT_APP_API_URL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`158.180.50.151`) && PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.rule=Host(`parser.livex.my`) && PathPrefix(`/`)"
       - "traefik.http.routers.frontend.entrypoints=http"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     restart: unless-stopped
