@@ -209,7 +209,7 @@ services:
       - REACT_APP_API_URL=${REACT_APP_API_URL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`158.180.50.151`)"
+      - "traefik.http.routers.frontend.rule=Host(`158.180.50.151`) && PathPrefix(`/`)"
       - "traefik.http.routers.frontend.entrypoints=http"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     restart: unless-stopped
