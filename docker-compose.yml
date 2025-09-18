@@ -146,7 +146,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 300m
+          memory: 350m
           cpus: 1.5
     restart: always
     container_name: crypto-core-prod
